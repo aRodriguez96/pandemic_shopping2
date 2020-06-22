@@ -29,7 +29,9 @@ public class manager implements Runnable {
 		}
     	System.out.println("The store is opened!");
     	int iS = 0; //local inStore variable to check how many people are in the store 
-    	while(store.isStoreOpen) {
+    	boolean iO = true; //local is store open to know when the store closes.
+    	
+    	while(iO) {
     		try {
 				store.inStore_mutex.acquire();
 				iS = store.inStore;
@@ -57,8 +59,17 @@ public class manager implements Runnable {
 						e.printStackTrace();
 					}
 	    		}
-    		} 		
+    		} 
+    		try {
+				store.isStoreOpen_mutex.acquire();
+				iO = store.isStoreOpen;
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		store.isStoreOpen_mutex.release();
     	 }
+    	System.out.println("Manager leaves the store");
     	
     	
     	
