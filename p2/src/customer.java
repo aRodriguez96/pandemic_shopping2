@@ -16,21 +16,21 @@ public class customer implements Runnable {
     }
 
     public void run() {
-    	System.out.println("Customer-"+ID+" got on the line outside and elderly is "+isElderly);
+    	msg("Customer-"+ID+" got on the line outside and elderly is "+isElderly);
     	try {
 			store.outsideLine.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-    	System.out.println("Customer-"+ID+" enters the store and begins shopping");
+    	msg("Customer-"+ID+" enters the store and begins shopping");
     	try {
             Thread.sleep((long)(Math.random() * (20000 - 10000)) + 10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
   
-    	System.out.println("Customer-"+ID+" gets on the checkoutLine");
-    	try {
+    	msg("Customer-"+ID+" gets on the checkoutLine");
+    	try {                                          //waits on appropriate checkout line
     		if(isElderly == true) {
     			store.elderlyRegisterAvailable.acquire();
     		}
@@ -40,38 +40,36 @@ public class customer implements Runnable {
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
-    	try{
+    	try{                                       //goes to the correct register depending on which is open and if customer is elderly or not
     		if(isElderly == true) {
     			store.reg3isBusy_mutex.acquire();
 	    		store.register[2].isBusy = true;
 	    	store.reg3isBusy_mutex.release();
-	    		//store.register[0].customerServing = ID;
-	    	System.out.println("Register-3 serves Customer-"+ID);
+	    	msg("Register-3 serves Customer-"+ID);
 	    		store.reg3.release();
 	    		store.reg3pay.acquire();
 	    		store.reg3pay.release();
 	    	store.reg3isBusy_mutex.acquire();
 	    		store.register[2].isBusy = false;
 	    	store.reg3isBusy_mutex.release();
-    		}
-    		else if(store.register[0].isBusy == false){
+    		
+    		} else if(store.register[0].isBusy == false){
 	    		store.reg1isBusy_mutex.acquire();
 		    		store.register[0].isBusy = true;
 		    	store.reg1isBusy_mutex.release();
-		    		//store.register[0].customerServing = ID;
-		    	System.out.println("Register-1 serves Customer-"+ID);
+		    	msg("Register-1 serves Customer-"+ID);
 		    		store.reg1.release();
 		    		store.reg1pay.acquire();
 		    		store.reg1pay.release();
 		    	store.reg1isBusy_mutex.acquire();
 		    		store.register[0].isBusy = false;
 		    	store.reg1isBusy_mutex.release();
-    	   } else if(store.register[1].isBusy == false){
+    	  
+    		} else if(store.register[1].isBusy == false){
 	    		store.reg2isBusy_mutex.acquire();
 		    		store.register[1].isBusy = true;
 		    	store.reg2isBusy_mutex.release();
-		    		//store.register[1].customerServing = ID;
-		    	System.out.println("Register-2 serves Customer-"+ID);
+		    	msg("Register-2 serves Customer-"+ID);
 		    		store.reg2.release();
 		    		store.reg2pay.acquire();
 		    		store.reg2pay.release();
@@ -93,20 +91,23 @@ public class customer implements Runnable {
     	try {
 			store.inStore_mutex.acquire();
 			store.inStore--;
-		 	System.out.println("Customer-"+ID+" has paid and leaves the store");
+		 	msg("Customer-"+ID+" has paid and leaves the store");
 		 	store.parkingLotLine[Integer.parseInt(ID)-1] = this;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
     	store.inStore_mutex.release();
     	try {
-			store.parkingLotLineSemaphores[Integer.parseInt(ID)-1].acquire();
-			System.out.println("Customer-"+ID+" leaves the parking lot");
+			store.parkingLotLineSemaphores[Integer.parseInt(ID)-1].acquire();          //waits in car to be released from parking lot
+			msg("Customer-"+ID+" leaves the parking lot");
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    }
+    
+    public void msg(String m) {
+        System.out.println("[" + (System.currentTimeMillis() - store.time) + "] " + thread.getName() + ": " + m);
     }
 }

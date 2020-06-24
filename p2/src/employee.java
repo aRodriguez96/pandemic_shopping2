@@ -25,28 +25,26 @@ public class employee implements Runnable {
 			e.printStackTrace();
 		}
     	
-    	//sends waiting customers to registers
+    	//sends waiting customers to registers while the customers served is less than max customers
     	while(cs < store.maxCustomers) {
     		//System.out.println(store.registerAvailable.getQueueLength());
     		if(store.registerAvailable.getQueueLength() > 0) {
-    			if(store.register[0].isBusy == false || store.register[1].isBusy == false) {
+    			if(store.register[0].isBusy == false || store.register[1].isBusy == false) { //if register for regular customer becomes available, send customer to register
     				store.registerAvailable.release();
     				try {
 						Thread.sleep(3000);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
     			}
     		}
-    		
-    		if(store.elderlyRegisterAvailable.getQueueLength() > 0) {
+    		 
+    		if(store.elderlyRegisterAvailable.getQueueLength() > 0) {        //if register for elderly is available, send elderly to register
     			if(store.register[2].isBusy == false) {
     				store.elderlyRegisterAvailable.release();
     				try {
 						Thread.sleep(3000);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
     			}
@@ -60,37 +58,33 @@ public class employee implements Runnable {
 			}
     		store.customersServed_mutex.release();
     	}
-    	try {
+    	try {                                               //start closing the store
 			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-    	System.out.println("Employee begins closing the store...");
+    	msg("Employee begins closing the store...");
     	try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-    	store.reg1.release();
+    	store.reg1.release();                //start closing down the register threads
     	try {
 			Thread.sleep(500);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
     	store.reg2.release();
     	try {
 			Thread.sleep(500);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
     	store.reg3.release();
     	try {
 			Thread.sleep(500);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
       	try {
@@ -99,7 +93,7 @@ public class employee implements Runnable {
     			e.printStackTrace();
     		}
       	try {
-			store.isStoreOpen_mutex.acquire();
+			store.isStoreOpen_mutex.acquire(); 
 			store.isStoreOpen = false;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -108,36 +102,26 @@ public class employee implements Runnable {
      	try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-      	System.out.println("Employee closes the store and gets to the parking lot to save the distressed customers!");
+		}                                            //store is closed
+      	msg("Employee closes the store and gets to the parking lot to save the distressed customers!");
       	try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-      	for(int i = 0; i < 20; i++) {
+      	for(int i = 0; i < store.maxCustomers; i++) {                       //let customers go home from parking lot
       		store.parkingLotLineSemaphores[i].release();
       		try {
     			Thread.sleep(1000);
     		} catch (InterruptedException e) {
-    			// TODO Auto-generated catch block
     			e.printStackTrace();
     		}
       	}
-      	System.out.println("Employee leaves the parking lot");
+      	msg("Employee leaves the parking lot");
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    public void msg(String m) {
+        System.out.println("[" + (System.currentTimeMillis() - store.time) + "] " + thread.getName() + ": " + m);
+    }
 }

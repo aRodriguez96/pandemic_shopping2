@@ -18,13 +18,12 @@ public class register implements Runnable {
     public void run() {
     	int cs = 0; //local customersSevered variable;
     	
-    	while(cs < store.maxCustomers) {
+    	while(cs < store.maxCustomers) {                        //start up the registers at the beginning of the day and wait for customers 
     		switch(Integer.parseInt(regID)) {
     			case 1: 
 					try {
 						store.reg1pay.acquire();
 						store.reg1.acquire();
-						//System.out.println("reg1 ACTIVE");
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -33,7 +32,6 @@ public class register implements Runnable {
     				try {
     					store.reg2pay.acquire();
 						store.reg2.acquire();
-						//System.out.println("reg2 ACTIVE");
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -42,24 +40,23 @@ public class register implements Runnable {
     				try {
     					store.reg3pay.acquire();
 						store.reg3.acquire();
-						//System.out.println("reg3 ACTIVE");
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
     				break;
     		}
     		try {
-    			store.customersServed_mutex.acquire();
+    			store.customersServed_mutex.acquire();          
     			cs = store.customersServed;
     		} catch (InterruptedException e) {
     			e.printStackTrace();
     		}
     		store.customersServed_mutex.release();
-    		if(cs == 20) {
-    			System.out.println("Register-"+regID+" closes for the day");
+    		if(cs == store.maxCustomers) {         //when employee releases registers at end of day, checks to see if no more customers are left in store and closes down the register
+    			msg("Register-"+regID+" closes for the day");
     			break;
     		}
-    		System.out.println("Register-"+regID+" is scanning groceries...");
+    		msg("Register-"+regID+" is scanning groceries...");
     		try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
@@ -76,16 +73,18 @@ public class register implements Runnable {
 					store.reg3pay.release();
 					break;
     		}
-        	try {
+        	try {                                                                
     			store.customersServed_mutex.acquire();
-    			cs = store.customersServed;                         //IS THIS NECESSSARY?
+    			cs = store.customersServed;                         
     		} catch (InterruptedException e) {
     			e.printStackTrace();
     		}
     		store.customersServed_mutex.release();
     		
     	}
-    	//System.out.println("Registers are shut down for the day");
-    	
+    }
+    
+    public void msg(String m) {
+        System.out.println("[" + (System.currentTimeMillis() - store.time) + "] " + thread.getName() + ": " + m);
     }
 }
